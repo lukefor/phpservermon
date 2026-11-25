@@ -67,7 +67,17 @@ class Installer
     }
 
     /**
+     * The most recent version whose upgrade() step changes the database.
+     * Bump this whenever a new upgradeXXX() step is added.
+     */
+    const LAST_SCHEMA_CHANGE_VERSION = '3.5.0';
+
+    /**
      * Check if an upgrade is required for the current version.
+     *
+     * Only versions with database changes (see LAST_SCHEMA_CHANGE_VERSION) require running install.php;
+     * for any other version difference the stored version is simply updated.
+     *
      * @return boolean
      * @see upgrade()
      */
@@ -80,13 +90,13 @@ class Installer
             return false;
         }
 
-        // different DB version, check if the version requires any changes
-        if (version_compare($version_db, PSM_VERSION, '<')) {
+        // older database that still needs schema changes
+        if (version_compare($version_db, self::LAST_SCHEMA_CHANGE_VERSION, '<')) {
             return true;
-        } else {
-            // change database version to current version so this check won't be required next time
-            psm_update_conf('version', PSM_VERSION);
         }
+
+        // no database changes needed: record the current version so this check won't be required next time
+        psm_update_conf('version', PSM_VERSION);
         return false;
     }
 

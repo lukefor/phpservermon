@@ -298,7 +298,10 @@ class HistoryGraph
         // Record the first and last date as a string in the down array
         $prev_downtime == 0 ?: $downtime += ($now->getTimestamp() - $prev_downtime);
         if ($add_uptime) {
-            $prev['status'] ?: $lines['offline'][] = '{ x: ' . ($now->getTimestamp() * 1000) . ', y:0.1}';
+            // $prev is false when the server has no history yet (reset() on an empty array)
+            if (empty($prev['status'])) {
+                $lines['offline'][] = '{ x: ' . ($now->getTimestamp() * 1000) . ', y:0.1}';
+            }
             $data['uptime'] = 100 - ($downtime / ($end_time->getTimestamp() - $start_time->getTimestamp()));
         }
 

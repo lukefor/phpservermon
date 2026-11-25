@@ -4,6 +4,10 @@ Changelog
 
 Not yet released
 ----------------
+\-
+
+v4.0.0 (released November 26, 2026)
+-----------------------------------
 
 PHP 8.2 - 8.5 support (based on v3.5.2, no database changes).
 
@@ -21,6 +25,9 @@ PHP 8.2 - 8.5 support (based on v3.5.2, no database changes).
   never applied its default. A blank timeout is saved as "use the default" instead of a hard-coded 10.
 * The cron lock is released when a run ends abnormally (fatal error, time limit), so a crashed run no longer
   blocks every following run until ``PSM_CRON_TIMEOUT`` expires.
+* Upgrading no longer forces a visit to install.php when the new version has no database changes
+  (``Installer::LAST_SCHEMA_CHANGE_VERSION``); the stored version is updated automatically.
+* Fixed a PHP warning when viewing a server that has no history yet.
 
 v3.5.2 (released August 12, 2020)
 -----------------------------
