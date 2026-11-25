@@ -2,7 +2,7 @@
     <input type="hidden" name="csrf" value="{{ csrf_token(csrf_key|default('')) }}" />
 {% endmacro input_csrf %}
 
-{% macro input_checkbox(id, name, label, checked, help, help_label) %}
+{% macro input_checkbox(id = null, name = null, label = null, checked = null, help = null, help_label = null) %}
     <div class="form-group">
         <div class="custom-control custom-checkbox">
             <input type="checkbox" class="custom-control-input" id="{{ id }}" name="{{ name }}"
@@ -16,7 +16,7 @@
     </div>
 {% endmacro input_checkbox %}
 
-{% macro input_select(id, name, label, options, current, help, help_label) %}
+{% macro input_select(id = null, name = null, label = null, options = null, current = null, help = null, help_label = null) %}
     <div class="form-group">
         <label for="{{ id }}">{{ label }}</label>
         <select id="{{ id }}" name="{{ name }}" class="custom-select" {% if help %}aria-describedby="{{ help }}"{% endif %}>
@@ -33,7 +33,7 @@
     </div>
 {% endmacro input_select %}
 
-{% macro input_select_multiple(id, name, label, placeholder, options, select_message) %}
+{% macro input_select_multiple(id = null, name = null, label = null, placeholder = null, options = null, select_message = null) %}
     <div class="form-group">
         <label for="{{ id }}">{{ label }}</label>
         <select class="selectpicker" id="{{ id }}" name="{{ name }}" data-select-on-tab="true" data-live-search="true"
@@ -46,7 +46,7 @@
     </div>
 {% endmacro input_select_multiple %}
 
-{% macro input_select_monitoring(id, name, label, current, label_yes, label_no, warning, warning_label) %}
+{% macro input_select_monitoring(id = null, name = null, label = null, current = null, label_yes = null, label_no = null, warning = null, warning_label = null) %}
     <div class="form-group form-row">
         {% if warning %}
         <div class="alert alert-warning col-md-12" role="alert">
@@ -63,7 +63,7 @@
     </div>
 {% endmacro %}
 
-{% macro input_field(type, id, class, name, label, value, placeholder, max, help, help_label, side_label, readonly, required, autofocus, autocomplete, disabled) %}
+{% macro input_field(type = null, id = null, class = null, name = null, label = null, value = null, placeholder = null, max = null, help = null, help_label = null, side_label = null, readonly = null, required = null, autofocus = null, autocomplete = null, disabled = null) %}
     <div class="form-group {% if class %}{{ class }}{% endif %}">
         <label for="{{ id }}">{{ label }}</label>
         {% if side_label and help %}
@@ -94,19 +94,19 @@
     </div>
 {% endmacro input_field %}
 
-{% macro input_hidden(name, value) %}
+{% macro input_hidden(name = null, value = null) %}
     <input type="hidden" name="{{ name }}" value="{{ value }}">
 {% endmacro input_hidden %}
 
-{% macro button_test(data_modal_id, label) %}
+{% macro button_test(data_modal_id = null, label = null) %}
     <button class="btn btn-primary show-modal" data-toggle="modal" data-modal-id="{{ data_modal_id }}">{{ label }}</button>
 {% endmacro button_test %}
 
-{% macro button_save(name, label) %}
+{% macro button_save(name = null, label = null) %}
     <button class="btn btn-success" type="submit" {% if name %}name="{{ name }}"{% endif %}>{{ label }}</button>
 {% endmacro button_save %}
 
-{% macro table_search(label) %}
+{% macro table_search(label = null) %}
     <noscript><div hidden></noscript>
     <div class="searchbar mb-3">
         <input class="search_input" type="search" name="" maxlength="255" placeholder="{{ label }}..." aria-label="{{ label }}">

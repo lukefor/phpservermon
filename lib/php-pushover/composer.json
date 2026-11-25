@@ -1,0 +1,17 @@
+{
+    "name": "php-pushover/php-pushover",
+    "version": "1.0.1.1",
+    "type": "library",
+    "description": "PHP class for the Pushover.net project",
+    "authors": [
+        {
+            "name": "Chris Schalenborgh",
+            "email": "chris@schalenborgh.be"
+        }
+    ],
+    "autoload": {
+        "files": [
+            "Pushover.php"
+        ]
+    }
+}

@@ -213,13 +213,12 @@ class CMBulkSMS extends Core
         $cResponse = curl_exec($cr);
         $cError = curl_error($cr);
         $cErrorCode = curl_errno($cr);
-        curl_close($cr);
 
         // set result and log error if needed
         if ($cError) {
             $this->error = 'Response: CM SMS API:' . $cResponse . ' cURL Error Code: ' .
                 $cErrorCode . '"' . $cError . '"';
-            error_log($this->error, E_USER_ERROR);
+            error_log($this->error);
             $this->result = false;
         }
 

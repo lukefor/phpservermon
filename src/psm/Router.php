@@ -33,7 +33,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
-use Symfony\Component\DependencyInjection\Loader\XmlFileLoader;
+use Symfony\Component\DependencyInjection\Loader\PhpFileLoader;
 
 /**
  * The router class opens the controller and runs the module.
@@ -209,15 +209,15 @@ class Router
     protected function buildServiceContainer()
     {
         $builder = new ContainerBuilder();
-        $loader = new XmlFileLoader($builder, new FileLocator(PSM_PATH_CONFIG));
-        $loader->load('services.xml');
+        $loader = new PhpFileLoader($builder, new FileLocator(PSM_PATH_CONFIG));
+        $loader->load('services.php');
 
         return $builder;
     }
 
     /**
      * Prepare twig environment
-     * @return \Twig_Environment
+     * @return \Twig\Environment
      */
     protected function buildTwigEnvironment()
     {
@@ -231,7 +231,7 @@ class Router
         }
 
         $twig->addFunction(
-            new \Twig_SimpleFunction(
+            new \Twig\TwigFunction(
                 'csrf_token',
                 function ($lock_to = null) use ($session) {
                     if (empty($lock_to)) {

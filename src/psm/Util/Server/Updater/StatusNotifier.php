@@ -257,7 +257,10 @@ class StatusNotifier
             $this->combine ? $this->setCombi('telegram') : $this->notifyByTelegram($users);
         }
 
-        if ($this->send_jabber && $this->server['jaber'] == 'yes') {
+        // NOTE: upstream bug - the 'jaber' typo means Jabber notifications never fire. Kept as-is
+        // (only the PHP 8 "undefined array key" warning is avoided) so behaviour doesn't change;
+        // use $this->server['jabber'] to actually enable Jabber notifications.
+        if ($this->send_jabber && ($this->server['jaber'] ?? null) == 'yes') {
 	        $this->combine ? $this->setCombi('jabber') : $this->notifyByJabber($users);
         }
 

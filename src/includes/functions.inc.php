@@ -28,6 +28,25 @@
 
 namespace {
 
+/**
+ * Log a fatal error, show it (if display_errors is on) and stop.
+ *
+ * Replaces trigger_error($message, E_USER_ERROR), which is deprecated since PHP 8.4.
+ *
+ * @param string $message may contain HTML for the browser; tags are stripped for logs/CLI
+ */
+    function psm_fatal_error($message)
+    {
+        error_log('PHP Fatal error:  ' . strip_tags($message));
+        if (!headers_sent() && PHP_SAPI !== 'cli') {
+            http_response_code(500);
+        }
+        if (filter_var(ini_get('display_errors'), FILTER_VALIDATE_BOOLEAN) || ini_get('display_errors') === 'stderr') {
+            echo PHP_SAPI === 'cli' ? strip_tags($message) . PHP_EOL : '<b>Fatal error</b>: ' . $message;
+        }
+        exit(1);
+    }
+
 ###############################################
 #
 # Language functions
@@ -86,9 +105,9 @@ namespace {
         $default_lang_file = PSM_PATH_LANG . 'en_US.lang.php';
 
         file_exists($default_lang_file) ? require $default_lang_file :
-        trigger_error("English translation needs to be installed at all time!", E_USER_ERROR);
+        psm_fatal_error("English translation needs to be installed at all time!");
         isset($sm_lang) ? $GLOBALS['sm_lang_default'] = $sm_lang :
-        trigger_error("\$sm_lang not found in English translation!", E_USER_ERROR);
+        psm_fatal_error("\$sm_lang not found in English translation!");
         unset($sm_lang);
         // load translation is the selected language is not English (en_US)
         if ($lang != "en_US") {
@@ -372,14 +391,14 @@ namespace {
         $vars['date'] = date('Y-m-d H:i:s');
 
         foreach ($vars as $k => $v) {
-            $message = str_replace('%' . strtoupper($k) . '%', $v, $message);
+            $message = str_replace('%' . strtoupper($k) . '%', (string) $v, $message);
         }
 
         return $message;
     }
 
 /**
- * Shortcut to curl_init(), curl_exec and curl_close()
+ * Shortcut to curl_init() and curl_exec()
  *
  * @param string $href
  * @param boolean $header return headers?
@@ -459,7 +478,6 @@ namespace {
         $result['exec'] = curl_exec($ch);
         $result['info'] = curl_getinfo($ch);
 
-        curl_close($ch);
     
         if (defined('PSM_DEBUG') && PSM_DEBUG === true && psm_is_cli()) {
             echo PHP_EOL .
@@ -490,18 +508,13 @@ namespace {
         if ($time < strtotime(date('Y-m-d 00:00:00')) - 60 * 60 * 24 * 3) {
             $format = psm_get_lang('system', (date('Y') !== date('Y', $time)) ?
             'long_day_format' : 'short_day_format');
-            // Check for Windows to find and replace the %e
-            // modifier correctly
-            if (strtoupper(substr(PHP_OS, 0, 3)) == 'WIN') {
-                $format = preg_replace('#(?<!%)((?:%%)*)%e#', '\1%#d', $format);
-            }
-            return strftime($format, $time);
+            return psm_strftime($format, $time);
         }
         $d = time() - $time;
         if ($d >= 60 * 60 * 24) {
             $format = psm_get_lang('system', (date('l', time() - 60 * 60 * 24) == date('l', $time)) ?
             'yesterday_format' : 'other_day_format');
-            return strftime($format, $time);
+            return psm_strftime($format, $time);
         }
         if ($d >= 60 * 60 * 2) {
             return sprintf(psm_get_lang('system', 'hours_ago'), intval($d / (60 * 60)));
@@ -532,7 +545,133 @@ namespace {
         if (empty($time) || $time == '0000-00-00 00:00:00') {
             return psm_get_lang('system', 'never');
         }
-        return strftime('%x %X', strtotime($time));
+        return psm_strftime('%x %X', strtotime($time));
+    }
+
+/**
+ * Drop-in replacement for strftime(), which is deprecated since PHP 8.1
+ * and removed in PHP 9.
+ *
+ * Supports the strftime() conversion specifiers used by the language files.
+ * Numbers are formatted with date(); day/month names are localised with
+ * ext/intl when it is available (using the active language's locale_tag),
+ * otherwise English names are used.
+ *
+ * @param string $format strftime() style format, e.g. '%B %e, %Y'
+ * @param int|null $timestamp defaults to now
+ * @return string
+ */
+    function psm_strftime($format, $timestamp = null)
+    {
+        $timestamp = ($timestamp === null || $timestamp === false) ? time() : (int) $timestamp;
+
+        static $formatters = array();
+        $intl = function ($pattern, $date_type = null, $time_type = null) use (&$formatters, $timestamp) {
+            if (!class_exists('IntlDateFormatter')) {
+                return null;
+            }
+            $locale = str_replace('-', '_', (string) psm_get_lang('locale_tag'));
+            if ($locale === '') {
+                $locale = 'en_US';
+            }
+            $key = $locale . '|' . $pattern . '|' . $date_type . '|' . $time_type;
+            if (!isset($formatters[$key])) {
+                $formatters[$key] = new \IntlDateFormatter(
+                    $locale,
+                    $date_type === null ? \IntlDateFormatter::NONE : $date_type,
+                    $time_type === null ? \IntlDateFormatter::NONE : $time_type,
+                    date_default_timezone_get(),
+                    \IntlDateFormatter::GREGORIAN,
+                    $pattern === '' ? null : $pattern
+                );
+            }
+            $result = $formatters[$key]->format($timestamp);
+            return $result === false ? null : $result;
+        };
+
+        return preg_replace_callback(
+            '/%([#-]?)([a-zA-Z%])/',
+            function ($m) use ($timestamp, $intl) {
+                switch ($m[2]) {
+                    case 'a':
+                        return $intl('EEE') ?? date('D', $timestamp);
+                    case 'A':
+                        return $intl('EEEE') ?? date('l', $timestamp);
+                    case 'b':
+                    case 'h':
+                        return $intl('MMM') ?? date('M', $timestamp);
+                    case 'B':
+                        return $intl('MMMM') ?? date('F', $timestamp);
+                    case 'p':
+                        return date('A', $timestamp);
+                    case 'P':
+                        return date('a', $timestamp);
+                    case 'd':
+                        return $m[1] === '' ? date('d', $timestamp) : date('j', $timestamp);
+                    case 'e':
+                        return date('j', $timestamp);
+                    case 'j':
+                        return sprintf('%03d', (int) date('z', $timestamp) + 1);
+                    case 'u':
+                        return date('N', $timestamp);
+                    case 'w':
+                        return date('w', $timestamp);
+                    case 'm':
+                        return date('m', $timestamp);
+                    case 'y':
+                        return date('y', $timestamp);
+                    case 'Y':
+                        return date('Y', $timestamp);
+                    case 'H':
+                        return date('H', $timestamp);
+                    case 'k':
+                        return date('G', $timestamp);
+                    case 'I':
+                        return date('h', $timestamp);
+                    case 'l':
+                        return date('g', $timestamp);
+                    case 'M':
+                        return date('i', $timestamp);
+                    case 'S':
+                        return date('s', $timestamp);
+                    case 'Z':
+                        return date('T', $timestamp);
+                    case 'z':
+                        return date('O', $timestamp);
+                    case 's':
+                        return (string) $timestamp;
+                    case 'D':
+                        return date('m/d/y', $timestamp);
+                    case 'F':
+                        return date('Y-m-d', $timestamp);
+                    case 'T':
+                        return date('H:i:s', $timestamp);
+                    case 'R':
+                        return date('H:i', $timestamp);
+                    case 'x':
+                        return $intl('', \defined('IntlDateFormatter::SHORT') ? \IntlDateFormatter::SHORT : null)
+                            ?? date('m/d/y', $timestamp);
+                    case 'X':
+                        return $intl('', null, \defined('IntlDateFormatter::MEDIUM') ? \IntlDateFormatter::MEDIUM : null)
+                            ?? date('H:i:s', $timestamp);
+                    case 'c':
+                        return $intl(
+                            '',
+                            \defined('IntlDateFormatter::MEDIUM') ? \IntlDateFormatter::MEDIUM : null,
+                            \defined('IntlDateFormatter::MEDIUM') ? \IntlDateFormatter::MEDIUM : null
+                        ) ?? date('D M j H:i:s Y', $timestamp);
+                    case 'n':
+                        return "\n";
+                    case 't':
+                        return "\t";
+                    case '%':
+                        return '%';
+                    default:
+                        return $m[0];
+                }
+            },
+            (string) $format
+        );
     }
 
 /**

@@ -67,11 +67,10 @@ namespace {
     $vendor_autoload = PSM_PATH_SRC . '..' . DIRECTORY_SEPARATOR . 'vendor' .
     DIRECTORY_SEPARATOR . 'autoload.php';
     if (!file_exists($vendor_autoload)) {
-        trigger_error(
-            "No dependencies found in vendor dir. Did you install the dependencies?
-                Please run \"php composer.phar install\".",
-            E_USER_ERROR
-        );
+        $msg = "No dependencies found in vendor dir. Did you install the dependencies?
+                Please run \"php composer.phar install\".";
+        error_log("PHP Fatal error:  " . $msg);
+        exit($msg);
     }
     require_once $vendor_autoload;
 
@@ -89,7 +88,7 @@ namespace {
         }
         // config file has been loaded, check if we have a connection
         if (!$db->status()) {
-            trigger_error("Unable to establish database connection...", E_USER_ERROR);
+            psm_fatal_error("Unable to establish database connection...");
         }
         // attempt to load configuration from database
         if (!psm_load_conf()) {
@@ -100,10 +99,9 @@ namespace {
         // config load OK, make sure database version is up to date
         $installer = new \psm\Util\Install\Installer($db);
         if ($installer->isUpgradeRequired()) {
-            trigger_error(
+            psm_fatal_error(
                 "Your database is for an older version and requires an upgrade, 
-                    <a href=\"install.php\">please click here</a> to update your database to the latest version.",
-                E_USER_ERROR
+                    <a href=\"install.php\">please click here</a> to update your database to the latest version."
             );
         }
     }

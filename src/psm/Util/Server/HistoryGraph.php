@@ -45,11 +45,11 @@ class HistoryGraph
 
     /**
      * Twig environment
-     * @var \Twig_Environment $twig
+     * @var \Twig\Environment $twig
      */
     protected $twig;
 
-    public function __construct(Database $db, \Twig_Environment $twig)
+    public function __construct(Database $db, \Twig\Environment $twig)
     {
         $this->db = $db;
         $this->twig = $twig;

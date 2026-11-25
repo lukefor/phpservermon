@@ -4,7 +4,18 @@ Changelog
 
 Not yet released
 ----------------
-\-
+
+PHP 8.2 - 8.5 support (based on v3.5.2, no database changes).
+
+* Requires PHP 8.2+.
+* Upgraded to Symfony 7.4 LTS, Twig 3 and PHPMailer 7; dropped paragonie/random_compat.
+* Abandoned jaxl/jaxl and php-pushover/php-pushover are kept as patched copies in ``lib/`` (see ``lib/README.md``).
+* Service container configuration moved from XML to PHP (``src/config/services.php``); XML is removed in Symfony 8.
+* Replaced the removed ``ContainerAwareTrait``/``ContainerAwareInterface`` and ``ContainerAwareEventDispatcher``; fixed ``dispatch()`` argument order.
+* Replaced deprecated ``strftime()`` with ``psm_strftime()`` and ``trigger_error(E_USER_ERROR)`` with ``psm_fatal_error()``; removed no-op ``curl_close()`` calls.
+* Fixed PHP 8 null-argument deprecations (``htmlentities``, ``str_replace``, ``setcookie``); the ``setcookie`` one broke remember-me and logout when errors were displayed.
+* Twig macro arguments have explicit defaults (required by Twig 4).
+* Installer now checks for PHP 8.2+ (the old check also showed a bogus PHP 5 warning).
 
 v3.5.2 (released August 12, 2020)
 -----------------------------

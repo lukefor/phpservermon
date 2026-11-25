@@ -30,7 +30,7 @@ namespace psm\Module;
 
 use psm\Service\Database;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\DependencyInjection\ContainerAwareTrait;
+use psm\DependencyInjection\ContainerAwareTrait;
 
 abstract class AbstractController implements ControllerInterface
 {
@@ -109,7 +109,7 @@ abstract class AbstractController implements ControllerInterface
 
     /**
      * Twig object
-     * @var \Twig_Environment $twig
+     * @var \Twig\Environment $twig
      */
     protected $twig;
 
@@ -146,7 +146,7 @@ abstract class AbstractController implements ControllerInterface
      */
     protected $xhr = false;
 
-    public function __construct(Database $db, \Twig_Environment $twig)
+    public function __construct(Database $db, \Twig\Environment $twig)
     {
         $this->db = $db;
         $this->twig = $twig;

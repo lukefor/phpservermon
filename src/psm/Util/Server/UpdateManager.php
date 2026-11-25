@@ -29,8 +29,8 @@
 
 namespace psm\Util\Server;
 
-use Symfony\Component\DependencyInjection\ContainerAwareInterface;
-use Symfony\Component\DependencyInjection\ContainerAwareTrait;
+use psm\DependencyInjection\ContainerAwareInterface;
+use psm\DependencyInjection\ContainerAwareTrait;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
