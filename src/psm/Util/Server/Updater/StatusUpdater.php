@@ -226,8 +226,7 @@ class StatusUpdater
      */
     protected function updateService($max_runs, $run = 1)
     {
-        $timeout = ($this->server['timeout'] === null || $this->server['timeout'] > 0) ?
-            PSM_CURL_TIMEOUT : intval($this->server['timeout']);
+        $timeout = psm_resolve_timeout($this->server['timeout']);
         $errno = 0;
         // save response time
         $starttime = microtime(true);
@@ -269,7 +268,7 @@ class StatusUpdater
             $this->server['ip'],
             true,
             ($this->server['pattern'] == '' ? false : true),
-            $this->server['timeout'],
+            psm_resolve_timeout($this->server['timeout']),
             true,
             $this->server['website_username'],
             psm_password_decrypt($this->server['server_id'] .

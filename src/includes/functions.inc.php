@@ -403,7 +403,7 @@ namespace {
  * @param string $href
  * @param boolean $header return headers?
  * @param boolean $body return body?
- * @param int|null $timeout connection timeout in seconds. defaults to PSM_CURL_TIMEOUT (10 secs).
+ * @param int|null $timeout connection timeout in seconds. null/0 uses PSM_CURL_TIMEOUT.
  * @param boolean $add_agent add user agent?
  * @param string|bool $website_username Username website
  * @param string|bool $website_password Password website
@@ -422,7 +422,7 @@ namespace {
         $request_method = null,
         $post_field = null
     ) {
-        ($timeout === null || $timeout > 0) ? PSM_CURL_TIMEOUT : intval($timeout);
+        $timeout = psm_resolve_timeout($timeout);
 
         $ch = curl_init();
         if (defined('PSM_DEBUG') && PSM_DEBUG === true && psm_is_cli()) {
@@ -488,6 +488,19 @@ namespace {
         }
 
         return $result;
+    }
+
+/**
+ * Resolve a (per-server) timeout setting to seconds.
+ *
+ * A positive value is used as-is; null, empty, 0 or negative means "use the default" (PSM_CURL_TIMEOUT).
+ *
+ * @param mixed $timeout
+ * @return int
+ */
+    function psm_resolve_timeout($timeout)
+    {
+        return (is_numeric($timeout) && (int) $timeout > 0) ? (int) $timeout : (int) PSM_CURL_TIMEOUT;
     }
 
 /**

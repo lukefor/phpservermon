@@ -136,6 +136,11 @@ namespace {
     }
     if (!defined('PSM_DEBUG') || !PSM_DEBUG) {
         psm_update_conf($confPrefix . 'running', 1);
+        // Release the lock however this run ends (fatal error, uncaught exception, time limit, exit),
+        // otherwise a crashed run blocks every following run until PSM_CRON_TIMEOUT expires.
+        register_shutdown_function(function () use ($confPrefix) {
+            psm_update_conf($confPrefix . 'running', 0);
+        });
     }
     psm_update_conf($confPrefix . 'running_time', $time);
 

@@ -16,6 +16,11 @@ PHP 8.2 - 8.5 support (based on v3.5.2, no database changes).
 * Fixed PHP 8 null-argument deprecations (``htmlentities``, ``str_replace``, ``setcookie``); the ``setcookie`` one broke remember-me and logout when errors were displayed.
 * Twig macro arguments have explicit defaults (required by Twig 4).
 * Installer now checks for PHP 8.2+ (the old check also showed a bogus PHP 5 warning).
+* Per-server timeouts now work for service checks (the condition was inverted, so ``PSM_CURL_TIMEOUT`` was always used),
+  and website checks with no timeout set use ``PSM_CURL_TIMEOUT`` instead of waiting forever. ``psm_curl_get()``
+  never applied its default. A blank timeout is saved as "use the default" instead of a hard-coded 10.
+* The cron lock is released when a run ends abnormally (fatal error, time limit), so a crashed run no longer
+  blocks every following run until ``PSM_CRON_TIMEOUT`` expires.
 
 v3.5.2 (released August 12, 2020)
 -----------------------------
